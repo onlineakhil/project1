@@ -90,6 +90,10 @@ p {
     margin-left:10px;
     transition: .15s linear;
 }
+.modal-body {
+    padding: 30px 20px !important;
+    font-size: 14px !important;
+}
 
 @media (max-width: 575.98px) { 
     .content {
