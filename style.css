@@ -9,7 +9,6 @@
 .gradient-bg {
     background: linear-gradient(168.3deg, #2CD77F 0%, #109B7E 100%);
     background-repeat: no-repeat;
-    min-height: 100vh;
 }
 
 .container {
