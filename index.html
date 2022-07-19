@@ -297,6 +297,8 @@
 
                 <p style="padding-top: 20px;">facing some issues? <a href="https://linkedin.com/in/onlineakhil" target="_blank" class="link">let me know!</a>
                 </p>
+                <div class="website-counter"></div>
+                <button id="reset">Reset</button>
             </div>
         </div>
     </div>
@@ -347,6 +349,28 @@
     // Checks if should display install popup notification:
     if (isIos() && !isInStandaloneMode()) {document.getElementById("pinstall").style.visibility="visible";}
     
+</script>
+<script>
+  var counterContainer = document.querySelector(".website-counter");
+var resetButton = document.querySelector("#reset");
+var visitCount = localStorage.getItem("page_view");
+
+// Check if page_view entry is present
+if (visitCount) {
+  visitCount = Number(visitCount) + 1;
+  localStorage.setItem("page_view", visitCount);
+} else {
+  visitCount = 1;
+  localStorage.setItem("page_view", 1);
+}
+counterContainer.innerHTML = visitCount;
+
+// Adding onClick event listener
+resetButton.addEventListener("click", () => {
+  visitCount = 1;
+  localStorage.setItem("page_view", 1);
+  counterContainer.innerHTML = visitCount;
+});
 </script>
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script>
