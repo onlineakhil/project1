@@ -3,7 +3,7 @@
     "background_color": "#000000",
     "display": "standalone",
     "scope": "/",
-    "start_url": "/",
+    "start_url": "/project1/",
     "name": "WA Direct: Send WhatsApp message directy",
     "short_name": "WA Direct",
     "description": "WA DIrect is a simple web app that lets you sent a WhatsApp message to any phone number directly, without saving the number to your contacts",
