@@ -29,7 +29,7 @@
         
         if ('serviceWorker' in navigator) {
             window.addEventListener("load", () => {
-            navigator.serviceWorker.register('/project1/generate-sw.js')
+            navigator.serviceWorker.register('generate-sw.js')
             .then(reg => console.log("Service worker registered"))
             .catch(err => console.error(`Service Worker Error: ${err}`));
             });
