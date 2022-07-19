@@ -1,5 +1,5 @@
 {
-    "background_color": "purple",
+    "background_color": "#20BC7F",
     "description": "WA DIrect is a simple web app that lets you sent a WhatsApp message to any phone number directly, without saving the number to your contacts",
     "display": "fullscreen",
     "icons": [
