@@ -1,0 +1,32 @@
+{
+    "background_color": "purple",
+    "description": "WA DIrect is a simple web app that lets you sent a WhatsApp message to any phone number directly, without saving the number to your contacts",
+    "display": "fullscreen",
+    "icons": [
+        {
+            "src": "/project1/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/project1/icon-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/project1/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/project1/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "name": "WA Direct: Send WhatsApp message directy",
+    "short_name": "WA Direct",
+    "start_url": "/project1/index.html"
+  }
