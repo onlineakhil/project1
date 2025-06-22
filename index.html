@@ -2,39 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Metro FPV Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Metro Tracker with GPS</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     html, body { margin: 0; padding: 0; height: 100%; }
-    #map { height: 100vh; width: 100vw; transition: transform 0.5s ease; }
+    #map { height: 100vh; width: 100vw; transition: transform 0.3s linear; }
     .controls {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: rgba(255,255,255,0.8);
-      padding: 10px;
-      border-radius: 8px;
-      z-index: 1000;
+      background: white;
+      padding: 8px;
+      z-index: 999;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    button {
-      margin: 2px;
-      padding: 6px 12px;
-      cursor: pointer;
+    .controls button {
+      display: block;
+      margin: 4px 0;
+      width: 100%;
+    }
+    .leaflet-rotate-text {
+      transform: rotate(0deg);
     }
   </style>
 </head>
 <body>
 
-<div id="map"></div>
 <div class="controls">
-  <button onclick="toggleFPV()">Toggle FPV</button>
+  <button onclick="toggleFPV()">Toggle FPV Mode</button>
   <button onclick="toggleFollow()">Toggle Follow</button>
 </div>
+<div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-  const map = L.map('map', { zoomControl: false }).setView([12.93, 77.58], 13);
+  const map = L.map('map', { zoomControl: false }).setView([12.99507, 77.75777], 13);
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
@@ -57,66 +62,57 @@
   ];
 
   const routeCoords = stations.map(s => s.coords);
+
   const route = L.polyline(routeCoords, { color: "purple", weight: 5 }).addTo(map);
   map.fitBounds(route.getBounds());
 
-  // Add station markers
-  stations.forEach((s, i) => {
-    L.marker(s.coords).addTo(map).bindPopup(`<b>${s.name}</b><br>Metro Line: Purple`);
-  });
-
-  // Train icon
-  const trainIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/5193/5193754.png",
-    iconSize: [36, 36],
-    iconAnchor: [18, 18]
-  });
-
-  let trainMarker = L.marker(routeCoords[0], { icon: trainIcon, rotationAngle: 0 }).addTo(map);
-
-  // GPS (user) icon
-  const userIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-    iconSize: [25, 25],
-    iconAnchor: [12, 12]
-  });
-
-  let userMarker = null;
-
-  if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(pos => {
-      const { latitude, longitude } = pos.coords;
-      if (!userMarker) {
-        userMarker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map)
-          .bindPopup("You are here").openPopup();
-      } else {
-        userMarker.setLatLng([latitude, longitude]);
-      }
-    });
+  // Direction arrows
+  for (let i = 0; i < routeCoords.length - 1; i++) {
+    const midLat = (routeCoords[i][0] + routeCoords[i+1][0]) / 2;
+    const midLng = (routeCoords[i][1] + routeCoords[i+1][1]) / 2;
+    const arrow = L.divIcon({ html: "➤", iconSize: [20, 20], className: "arrow-icon" });
+    L.marker([midLat, midLng], { icon: arrow }).addTo(map);
   }
+
+  stations.forEach(s => {
+    L.marker(s.coords).bindPopup(`<b>${s.name}</b>`).addTo(map);
+  });
+
+  const metroIcon = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/5193/5193754.png",
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+
+  let metroMarker = L.marker(routeCoords[0], { icon: metroIcon }).addTo(map);
 
   function interpolate(start, end, t) {
-    return [
-      start[0] + (end[0] - start[0]) * t,
-      start[1] + (end[1] - start[1]) * t
-    ];
+    const lat = start[0] + (end[0] - start[0]) * t;
+    const lng = start[1] + (end[1] - start[1]) * t;
+    return [lat, lng];
   }
 
-  let segment = 0, t = 0, stepSize = 0.01;
-  let lastStation = null;
+  function calculateDistance(coord1, coord2) {
+    const R = 6371e3;
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(coord2[0] - coord1[0]);
+    const dLon = toRad(coord2[1] - coord1[1]);
+    const lat1 = toRad(coord1[0]);
+    const lat2 = toRad(coord2[0]);
+
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return (R * c / 1000).toFixed(2); // in KM
+  }
+
+  let segment = 0, t = 0, step = 0.01;
+  let lastStationShown = null;
   let followMode = true;
   let fpvMode = false;
-  let currentRotation = 0;
 
-  function toggleFollow() { followMode = !followMode; }
-  function toggleFPV() { fpvMode = !fpvMode; }
-
-  function getRotationDeg(start, end) {
-    const angleRad = Math.atan2(end[1] - start[1], end[0] - start[0]);
-    return (angleRad * 180 / Math.PI + 90); // Rotate icon "up"
-  }
-
-  function updateTrain() {
+  function updateMetro() {
     if (segment >= routeCoords.length - 1) {
       segment = 0;
       t = 0;
@@ -124,35 +120,71 @@
 
     const start = routeCoords[segment];
     const end = routeCoords[segment + 1];
-    const pos = interpolate(start, end, t);
-    trainMarker.setLatLng(pos);
+    const current = interpolate(start, end, t);
 
-    const angle = getRotationDeg(start, end);
-    trainMarker._icon.style.transform = `rotate(${angle}deg)`;
+    metroMarker.setLatLng(current);
+    if (followMode) map.setView(current);
 
-    if (followMode) map.setView(pos);
-    if (fpvMode) document.getElementById('map').style.transform = `rotate(${360 - angle}deg)`;
-    else document.getElementById('map').style.transform = `rotate(0deg)`;
+    const dist = calculateDistance(current, end);
+    const next = stations[segment + 1]?.name || "End";
+    const prev = stations[segment]?.name || "N/A";
 
-    const nextStation = stations[segment + 1]?.name || "End";
-    const prevStation = stations[segment]?.name || "Start";
-
-    if (!lastStation || Math.abs(pos[0] - end[0]) < 0.0006) {
-      trainMarker.bindPopup(`
-        <b>Now Passing:</b> ${prevStation}<br>
-        <b>Next:</b> ${nextStation}
+    if (lastStationShown !== next && dist < 0.3) {
+      metroMarker.bindPopup(`
+        <b>Next:</b> ${next}<br/>
+        <b>Last:</b> ${prev}<br/>
+        <b>Distance:</b> ${dist} km
       `).openPopup();
-      lastStation = nextStation;
+      lastStationShown = next;
     }
 
-    t += stepSize;
+    t += step;
     if (t >= 1) {
       t = 0;
       segment++;
     }
+
+    if (fpvMode) {
+      const angle = Math.atan2(end[1] - start[1], end[0] - start[0]) * 180 / Math.PI;
+      document.getElementById('map').style.transform = `rotate(${-angle + 90}deg)`;
+    }
   }
 
-  setInterval(updateTrain, 200);
+  setInterval(updateMetro, 200);
+
+  function toggleFPV() {
+    fpvMode = !fpvMode;
+    document.getElementById('map').style.transform = fpvMode ? 'rotate(0deg)' : 'rotate(0deg)';
+  }
+
+  function toggleFollow() {
+    followMode = !followMode;
+  }
+
+  // User GPS Location
+  const userIcon = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+
+  let userMarker = null;
+
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(pos => {
+      const latlng = [pos.coords.latitude, pos.coords.longitude];
+      if (!userMarker) {
+        userMarker = L.marker(latlng, { icon: userIcon }).addTo(map)
+          .bindPopup("You are here").openPopup();
+      } else {
+        userMarker.setLatLng(latlng);
+      }
+    }, err => console.log("GPS error:", err), {
+      enableHighAccuracy: true
+    });
+  } else {
+    alert("Geolocation is not supported.");
+  }
 </script>
 
 </body>
