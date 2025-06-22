@@ -3,197 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Metro FPV Tracker</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-  <style>
-    body, html { margin: 0; padding: 0; height: 100%; }
-    #map { height: 100vh; width: 100vw; }
+  <title>Metro Route Selector</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    font-family: sans-serif;
+  }
 
-    .controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-      background: white;
-      padding: 8px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
+  #map {
+    height: 100vh;
+    width: 100vw;
+    z-index: 0;
+  }
 
-    .controls button {
-      margin: 2px;
-      padding: 6px 10px;
-      font-size: 14px;
-    }
+  #controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 9999; /* Ensures it stays above map tiles */
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    width: 180px;
+  }
 
-    #station-info {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: white;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-family: sans-serif;
-      font-size: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-      z-index: 1000;
-      width: 220px;
-      line-height: 1.4em;
-    }
-  </style>
+  #controls label {
+    font-weight: bold;
+  }
+
+  #controls select,
+  #controls button {
+    margin-top: 5px;
+    width: 100%;
+    padding: 5px;
+    font-size: 14px;
+  }
+
+  #panel {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+</style>
+
 </head>
 <body>
 
-<div class="controls">
-  <button onclick="toggleFPV()">Toggle FPV Mode</button>
-  <button onclick="toggleFollow()">Toggle Follow</button>
-</div>
-
 <div id="map"></div>
 
-<!-- Bottom-right Station Info -->
-<div id="station-info">
-  <div><strong>Now Passing:</strong> <span id="current-station">N/A</span></div>
-  <div><strong>Next Station:</strong> <span id="next-station">N/A</span></div>
+<div id="controls">
+  <label>From Station:</label><br/>
+  <select id="fromSelect"></select><br/>
+  <label>To Station:</label><br/>
+  <select id="toSelect"></select><br/>
+  <button onclick="startJourney()">Start Journey</button><br/>
+  <button onclick="toggleFollow()">Toggle Follow</button>
+  <button onclick="toggleFPV()">Toggle FPV</button>
 </div>
+
+<div id="panel">Select From & To stations</div>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-const stations = [
-  { name: "Whitefield (Kadugodi)", coords: [12.99507, 77.75777] },
-  { name: "Hopefarm Channasandra", coords: [12.9995, 77.7420] },
-  { name: "Kadugodi Tree Park", coords: [13.0010, 77.7310] },
-  { name: "Pattandur Agrahara", coords: [13.0030, 77.7210] },
-  { name: "Sri Sathya Sai Hospital", coords: [13.0040, 77.7120] },
-  { name: "Nallurhalli", coords: [13.0050, 77.7040] },
-  { name: "Kundalahalli", coords: [13.0065, 77.6965] },
-  { name: "Seetharampalya", coords: [13.0080, 77.6890] },
-  { name: "Hoodi", coords: [13.0100, 77.6800] },
-  { name: "Garudacharpalya", coords: [13.0120, 77.6700] },
-  { name: "Singayyanapalya", coords: [13.0140, 77.6620] },
-  { name: "Krishnarajapura", coords: [13.0128, 77.6934] },
-  { name: "Benniganahalli", coords: [13.0150, 77.6520] },
-  { name: "Baiyappanahalli", coords: [13.0080, 77.6636] }
-];
+  const stations = [
+    { name: "Whitefield (Kadugodi)", coords: [12.99507, 77.75777] },
+    { name: "Hopefarm Channasandra", coords: [12.9995, 77.7420] },
+    { name: "Kadugodi Tree Park", coords: [13.0010, 77.7310] },
+    { name: "Pattandur Agrahara", coords: [13.0030, 77.7210] },
+    { name: "Sri Sathya Sai Hospital", coords: [13.0040, 77.7120] },
+    { name: "Nallurhalli", coords: [13.0050, 77.7040] },
+    { name: "Kundalahalli", coords: [13.0065, 77.6965] },
+    { name: "Seetharampalya", coords: [13.0080, 77.6890] },
+    { name: "Hoodi", coords: [13.0100, 77.6800] },
+    { name: "Garudacharpalya", coords: [13.0120, 77.6700] },
+    { name: "Singayyanapalya", coords: [13.0140, 77.6620] },
+    { name: "Krishnarajapura", coords: [13.0128, 77.6934] },
+    { name: "Benniganahalli", coords: [13.0150, 77.6520] },
+    { name: "Baiyappanahalli", coords: [13.0080, 77.6636] }
+  ];
 
-const map = L.map('map', { zoomControl: false }).setView([13.003, 77.7], 14);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
-
-// Metro route and station markers
-const routeCoords = stations.map(s => s.coords);
-const route = L.polyline(routeCoords, { color: "purple", weight: 5 }).addTo(map);
-map.fitBounds(route.getBounds());
-
-stations.forEach(s => {
-  L.marker(s.coords).bindPopup(`<b>${s.name}</b>`).addTo(map);
-});
-
-// Direction arrows
-for (let i = 0; i < routeCoords.length - 1; i++) {
-  const [a, b] = [routeCoords[i], routeCoords[i+1]];
-  const mid = [(a[0]+b[0])/2, (a[1]+b[1])/2];
-  const angle = Math.atan2(b[0]-a[0], b[1]-a[1]) * 180/Math.PI;
-  L.marker(mid, {
-    icon: L.divIcon({
-      className: 'arrow-icon',
-      html: '➤',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
-    }),
-    rotationAngle: angle
+  const map = L.map('map').setView([13.005, 77.7], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
   }).addTo(map);
-}
 
-// Metro Icon
-const gpsIcon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/5193/5193754.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 16]
-});
-
-let metroMarker = L.marker(routeCoords[0], { icon: gpsIcon }).addTo(map);
-let currentSegment = 0, t = 0, follow = true, fpv = false;
-let lastStationShown = "";
-
-function interpolate(p1, p2, t) {
-  return [p1[0] + (p2[0] - p1[0]) * t, p1[1] + (p2[1] - p1[1]) * t];
-}
-
-function updateMetro() {
-  if (currentSegment >= routeCoords.length - 1) {
-    currentSegment = 0;
-    t = 0;
-  }
-
-  const start = routeCoords[currentSegment];
-  const end = routeCoords[currentSegment + 1];
-  const pos = interpolate(start, end, t);
-
-  metroMarker.setLatLng(pos);
-
-  if (follow) {
-    map.setView(pos);
-  }
-
-  // FPV Rotation
-  if (fpv) {
-    const angle = Math.atan2(end[1]-start[1], end[0]-start[0]) * 180 / Math.PI;
-    document.getElementById("map").style.transform = `rotate(${-angle}deg)`;
-  } else {
-    document.getElementById("map").style.transform = "rotate(0deg)";
-  }
-
-  const next = stations[currentSegment + 1]?.name || "End";
-  const prev = stations[currentSegment]?.name || "Start";
-  const dx = end[0] - pos[0];
-  const dy = end[1] - pos[1];
-  const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-
-  if (lastStationShown !== next && dist < 0.2) {
-    document.getElementById('current-station').innerText = prev;
-    document.getElementById('next-station').innerText = next;
-    lastStationShown = next;
-  }
-
-  t += 0.01;
-  if (t >= 1) {
-    t = 0;
-    currentSegment++;
-  }
-}
-setInterval(updateMetro, 200);
-
-// User's real-time GPS marker
-const userIcon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12]
-});
-
-let userMarker;
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(pos => {
-    const latlng = [pos.coords.latitude, pos.coords.longitude];
-    if (!userMarker) {
-      userMarker = L.marker(latlng, { icon: userIcon }).addTo(map).bindPopup("Your Location");
-    } else {
-      userMarker.setLatLng(latlng);
-    }
-  }, err => {
-    console.log("Location error", err);
+  // Populate dropdowns
+  const fromSelect = document.getElementById("fromSelect");
+  const toSelect = document.getElementById("toSelect");
+  stations.forEach((s, i) => {
+    fromSelect.innerHTML += `<option value="${i}">${s.name}</option>`;
+    toSelect.innerHTML += `<option value="${i}">${s.name}</option>`;
   });
-}
 
-function toggleFPV() {
-  fpv = !fpv;
-}
+  stations.forEach(station => {
+    L.marker(station.coords).bindPopup(`<b>${station.name}</b>`).addTo(map);
+  });
 
-function toggleFollow() {
-  follow = !follow;
-}
+  const trainIcon = L.divIcon({
+    className: '',
+    html: `
+    <svg width="40" height="40" viewBox="0 0 64 64">
+      <rect x="18" y="8" width="28" height="48" rx="4" ry="4" fill="#6C63FF" stroke="#333" stroke-width="2"/>
+      <circle cx="22" cy="14" r="2" fill="#fff">
+        <animate attributeName="cy" values="14;18;14" dur="1.2s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="42" cy="14" r="2" fill="#fff">
+        <animate attributeName="cy" values="14;18;14" dur="1.2s" begin="0.6s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+
+  let gpsMarker = null;
+  let routeCoords = [];
+  let polyline = null;
+  let segment = 0;
+  let t = 0;
+  let follow = true;
+  let fpv = false;
+  let journeyStarted = false;
+
+  function interpolate(a, b, t) {
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  }
+
+  function calculateDistance(a, b) {
+    const R = 6371e3;
+    const φ1 = a[0] * Math.PI/180, φ2 = b[0] * Math.PI/180;
+    const Δφ = (b[0]-a[0]) * Math.PI/180;
+    const Δλ = (b[1]-a[1]) * Math.PI/180;
+    const x = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+  }
+
+  function update() {
+    if (!journeyStarted || segment >= routeCoords.length - 1) return;
+    const start = routeCoords[segment];
+    const end = routeCoords[segment + 1];
+    const current = interpolate(start, end, t);
+    gpsMarker.setLatLng(current);
+    if (follow) map.setView(current);
+    if (fpv) {
+      const angle = Math.atan2(end[1]-start[1], end[0]-start[0]) * 180 / Math.PI;
+      map.getPane('mapPane').style.transform = `rotate(${-angle}deg)`;
+    } else {
+      map.getPane('mapPane').style.transform = '';
+    }
+
+    const distance = calculateDistance(current, end).toFixed(1);
+    const now = stations[segmentRoute[segment]].name;
+    const next = stations[segmentRoute[segment + 1]]?.name || "End of line";
+    document.getElementById("panel").innerHTML = `
+      <b>Now Passing:</b> ${now}<br/>
+      <b>Next Station:</b> ${next}<br/>
+      <b>Distance:</b> ${distance} m
+    `;
+
+    t += 0.01;
+    if (t >= 1) {
+      t = 0;
+      segment++;
+    }
+  }
+
+  let segmentRoute = [];
+
+  function startJourney() {
+    const from = parseInt(fromSelect.value);
+    const to = parseInt(toSelect.value);
+    if (from === to) {
+      alert("From and To stations must be different.");
+      return;
+    }
+
+    // Reset previous route
+    if (polyline) map.removeLayer(polyline);
+    if (gpsMarker) map.removeLayer(gpsMarker);
+
+    // Get route
+    segmentRoute = from < to
+      ? Array.from({length: to - from + 1}, (_, i) => from + i)
+      : Array.from({length: from - to + 1}, (_, i) => from - i);
+
+    routeCoords = segmentRoute.map(i => stations[i].coords);
+    polyline = L.polyline(routeCoords, { color: 'purple', weight: 5 }).addTo(map);
+    gpsMarker = L.marker(routeCoords[0], { icon: trainIcon }).addTo(map);
+    map.fitBounds(polyline.getBounds());
+
+    segment = 0;
+    t = 0;
+    journeyStarted = true;
+  }
+
+  setInterval(update, 200);
+
+  function toggleFollow() {
+    follow = !follow;
+  }
+
+  function toggleFPV() {
+    fpv = !fpv;
+  }
+
+  // Real-time user location
+  navigator.geolocation.watchPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const userIcon = L.icon({
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/149/149060.png",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+    if (!window.userMarker) {
+      window.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup("You are here");
+    } else {
+      window.userMarker.setLatLng([lat, lng]);
+    }
+  });
 </script>
-
 </body>
 </html>
