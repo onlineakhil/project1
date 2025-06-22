@@ -2,29 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Metro FPV Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <title>Metro FPV Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
   <style>
-    html, body { margin: 0; padding: 0; height: 100%; }
-    #map { height: 100vh; width: 100vw; transition: transform 0.3s linear; }
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { height: 100vh; width: 100vw; }
+
     .controls {
       position: absolute;
       top: 10px;
       left: 10px;
+      z-index: 1000;
       background: white;
       padding: 8px;
-      z-index: 999;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
+
     .controls button {
-      display: block;
-      margin: 4px 0;
-      width: 100%;
+      margin: 2px;
+      padding: 6px 10px;
+      font-size: 14px;
     }
-    .leaflet-rotate-text {
-      transform: rotate(0deg);
+
+    #station-info {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      z-index: 1000;
+      width: 220px;
+      line-height: 1.4em;
     }
   </style>
 </head>
@@ -34,157 +48,151 @@
   <button onclick="toggleFPV()">Toggle FPV Mode</button>
   <button onclick="toggleFollow()">Toggle Follow</button>
 </div>
+
 <div id="map"></div>
+
+<!-- Bottom-right Station Info -->
+<div id="station-info">
+  <div><strong>Now Passing:</strong> <span id="current-station">N/A</span></div>
+  <div><strong>Next Station:</strong> <span id="next-station">N/A</span></div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-  const map = L.map('map', { zoomControl: false }).setView([12.99507, 77.75777], 13);
+const stations = [
+  { name: "Whitefield (Kadugodi)", coords: [12.99507, 77.75777] },
+  { name: "Hopefarm Channasandra", coords: [12.9995, 77.7420] },
+  { name: "Kadugodi Tree Park", coords: [13.0010, 77.7310] },
+  { name: "Pattandur Agrahara", coords: [13.0030, 77.7210] },
+  { name: "Sri Sathya Sai Hospital", coords: [13.0040, 77.7120] },
+  { name: "Nallurhalli", coords: [13.0050, 77.7040] },
+  { name: "Kundalahalli", coords: [13.0065, 77.6965] },
+  { name: "Seetharampalya", coords: [13.0080, 77.6890] },
+  { name: "Hoodi", coords: [13.0100, 77.6800] },
+  { name: "Garudacharpalya", coords: [13.0120, 77.6700] },
+  { name: "Singayyanapalya", coords: [13.0140, 77.6620] },
+  { name: "Krishnarajapura", coords: [13.0128, 77.6934] },
+  { name: "Benniganahalli", coords: [13.0150, 77.6520] },
+  { name: "Baiyappanahalli", coords: [13.0080, 77.6636] }
+];
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
+const map = L.map('map', { zoomControl: false }).setView([13.003, 77.7], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Metro route and station markers
+const routeCoords = stations.map(s => s.coords);
+const route = L.polyline(routeCoords, { color: "purple", weight: 5 }).addTo(map);
+map.fitBounds(route.getBounds());
+
+stations.forEach(s => {
+  L.marker(s.coords).bindPopup(`<b>${s.name}</b>`).addTo(map);
+});
+
+// Direction arrows
+for (let i = 0; i < routeCoords.length - 1; i++) {
+  const [a, b] = [routeCoords[i], routeCoords[i+1]];
+  const mid = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+  const angle = Math.atan2(b[0]-a[0], b[1]-a[1]) * 180/Math.PI;
+  L.marker(mid, {
+    icon: L.divIcon({
+      className: 'arrow-icon',
+      html: '➤',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    }),
+    rotationAngle: angle
   }).addTo(map);
+}
 
-  const stations = [
-    { name: "Whitefield (Kadugodi)", coords: [12.99507, 77.75777] },
-    { name: "Hopefarm Channasandra", coords: [12.9995, 77.7420] },
-    { name: "Kadugodi Tree Park", coords: [13.0010, 77.7310] },
-    { name: "Pattandur Agrahara", coords: [13.0030, 77.7210] },
-    { name: "Sri Sathya Sai Hospital", coords: [13.0040, 77.7120] },
-    { name: "Nallurhalli", coords: [13.0050, 77.7040] },
-    { name: "Kundalahalli", coords: [13.0065, 77.6965] },
-    { name: "Seetharampalya", coords: [13.0080, 77.6890] },
-    { name: "Hoodi", coords: [13.0100, 77.6800] },
-    { name: "Garudacharpalya", coords: [13.0120, 77.6700] },
-    { name: "Singayyanapalya", coords: [13.0140, 77.6620] },
-    { name: "Krishnarajapura", coords: [13.0128, 77.6934] },
-    { name: "Benniganahalli", coords: [13.0150, 77.6520] },
-    { name: "Baiyappanahalli", coords: [13.0080, 77.6636] }
-  ];
+// Metro Icon
+const gpsIcon = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/5193/5193754.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
+});
 
-  const routeCoords = stations.map(s => s.coords);
+let metroMarker = L.marker(routeCoords[0], { icon: gpsIcon }).addTo(map);
+let currentSegment = 0, t = 0, follow = true, fpv = false;
+let lastStationShown = "";
 
-  const route = L.polyline(routeCoords, { color: "purple", weight: 5 }).addTo(map);
-  map.fitBounds(route.getBounds());
+function interpolate(p1, p2, t) {
+  return [p1[0] + (p2[0] - p1[0]) * t, p1[1] + (p2[1] - p1[1]) * t];
+}
 
-  // Direction arrows
-  for (let i = 0; i < routeCoords.length - 1; i++) {
-    const midLat = (routeCoords[i][0] + routeCoords[i+1][0]) / 2;
-    const midLng = (routeCoords[i][1] + routeCoords[i+1][1]) / 2;
-    const arrow = L.divIcon({ html: "➤", iconSize: [20, 20], className: "arrow-icon" });
-    L.marker([midLat, midLng], { icon: arrow }).addTo(map);
+function updateMetro() {
+  if (currentSegment >= routeCoords.length - 1) {
+    currentSegment = 0;
+    t = 0;
   }
 
-  stations.forEach(s => {
-    L.marker(s.coords).bindPopup(`<b>${s.name}</b>`).addTo(map);
-  });
+  const start = routeCoords[currentSegment];
+  const end = routeCoords[currentSegment + 1];
+  const pos = interpolate(start, end, t);
 
-  const metroIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/5193/5193754.png",
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-  });
+  metroMarker.setLatLng(pos);
 
-  let metroMarker = L.marker(routeCoords[0], { icon: metroIcon }).addTo(map);
-
-  function interpolate(start, end, t) {
-    const lat = start[0] + (end[0] - start[0]) * t;
-    const lng = start[1] + (end[1] - start[1]) * t;
-    return [lat, lng];
+  if (follow) {
+    map.setView(pos);
   }
 
-  function calculateDistance(coord1, coord2) {
-    const R = 6371e3;
-    const toRad = x => x * Math.PI / 180;
-    const dLat = toRad(coord2[0] - coord1[0]);
-    const dLon = toRad(coord2[1] - coord1[1]);
-    const lat1 = toRad(coord1[0]);
-    const lat2 = toRad(coord2[0]);
-
-    const a = Math.sin(dLat/2)**2 +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return (R * c / 1000).toFixed(2); // in KM
-  }
-
-  let segment = 0, t = 0, step = 0.01;
-  let lastStationShown = null;
-  let followMode = true;
-  let fpvMode = false;
-
-  function updateMetro() {
-    if (segment >= routeCoords.length - 1) {
-      segment = 0;
-      t = 0;
-    }
-
-    const start = routeCoords[segment];
-    const end = routeCoords[segment + 1];
-    const current = interpolate(start, end, t);
-
-    metroMarker.setLatLng(current);
-    if (followMode) map.setView(current);
-
-    const dist = calculateDistance(current, end);
-    const next = stations[segment + 1]?.name || "End";
-    const prev = stations[segment]?.name || "N/A";
-
-    if (lastStationShown !== next && dist < 0.3) {
-      metroMarker.bindPopup(`
-        <b>Next:</b> ${next}<br/>
-        <b>Last:</b> ${prev}<br/>
-        <b>Distance:</b> ${dist} km
-      `).openPopup();
-      lastStationShown = next;
-    }
-
-    t += step;
-    if (t >= 1) {
-      t = 0;
-      segment++;
-    }
-
-    if (fpvMode) {
-      const angle = Math.atan2(end[1] - start[1], end[0] - start[0]) * 180 / Math.PI;
-      document.getElementById('map').style.transform = `rotate(${-angle + 90}deg)`;
-    }
-  }
-
-  setInterval(updateMetro, 200);
-
-  function toggleFPV() {
-    fpvMode = !fpvMode;
-    document.getElementById('map').style.transform = fpvMode ? 'rotate(0deg)' : 'rotate(0deg)';
-  }
-
-  function toggleFollow() {
-    followMode = !followMode;
-  }
-
-  // User GPS Location
-  const userIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
-  });
-
-  let userMarker = null;
-
-  if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(pos => {
-      const latlng = [pos.coords.latitude, pos.coords.longitude];
-      if (!userMarker) {
-        userMarker = L.marker(latlng, { icon: userIcon }).addTo(map)
-          .bindPopup("You are here").openPopup();
-      } else {
-        userMarker.setLatLng(latlng);
-      }
-    }, err => console.log("GPS error:", err), {
-      enableHighAccuracy: true
-    });
+  // FPV Rotation
+  if (fpv) {
+    const angle = Math.atan2(end[1]-start[1], end[0]-start[0]) * 180 / Math.PI;
+    document.getElementById("map").style.transform = `rotate(${-angle}deg)`;
   } else {
-    alert("Geolocation is not supported.");
+    document.getElementById("map").style.transform = "rotate(0deg)";
   }
+
+  const next = stations[currentSegment + 1]?.name || "End";
+  const prev = stations[currentSegment]?.name || "Start";
+  const dx = end[0] - pos[0];
+  const dy = end[1] - pos[1];
+  const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+
+  if (lastStationShown !== next && dist < 0.2) {
+    document.getElementById('current-station').innerText = prev;
+    document.getElementById('next-station').innerText = next;
+    lastStationShown = next;
+  }
+
+  t += 0.01;
+  if (t >= 1) {
+    t = 0;
+    currentSegment++;
+  }
+}
+setInterval(updateMetro, 200);
+
+// User's real-time GPS marker
+const userIcon = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
+
+let userMarker;
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(pos => {
+    const latlng = [pos.coords.latitude, pos.coords.longitude];
+    if (!userMarker) {
+      userMarker = L.marker(latlng, { icon: userIcon }).addTo(map).bindPopup("Your Location");
+    } else {
+      userMarker.setLatLng(latlng);
+    }
+  }, err => {
+    console.log("Location error", err);
+  });
+}
+
+function toggleFPV() {
+  fpv = !fpv;
+}
+
+function toggleFollow() {
+  follow = !follow;
+}
 </script>
 
 </body>
