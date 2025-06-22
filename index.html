@@ -1,365 +1,76 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <!-- <link rel="manifest" href="webmanifest.json"/> -->
-    <link rel="manifest" href="wadirect.webmanifest"/>
-    <title>WA Direct 🚀</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#109B7E">
-    <meta name="description" content="WA Direct is a simple service that lets you sent WhatsApp message to any phone number directly without saving number to your device contacts list. No login needed, no cookies used."/>
-    <meta name="keywords" content=" WA Direct, Message, WhatsApp, direct, contacts, contact list, phonebook, webservice">
-    <script>
-        function runApp(number) {
-          var ccode = $("#ccode").val();
-          var mnum = $("#mnum").val();
-          var number = ccode + mnum;
 
-          number = number.replace(/\D/g,'');
-          number = number.replace(/^0+/, '');
-          window.location = 'https://api.whatsapp.com/send?phone=' + number;
-          return false;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime location tracker</title>
+
+    <!-- leaflet css  -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
         }
-        
-        if ('serviceWorker' in navigator) {
-            window.addEventListener("load", () => {
-            navigator.serviceWorker.register('/generate-sw.js')
-            .then(reg => console.log("Service worker registered"))
-            .catch(err => console.error(`Service Worker Error: ${err}`));
-            });
-        } else {
-            console.log("Service Worker is not supported by browser.");
+
+        #map {
+            width: 100%;
+            height: 100vh;
         }
-        
-        function sharethis()
-        {
-        if (navigator.share) {
-          navigator.share({
-            title: 'WA Direct 🚀',
-            text: 'Send WhatsApp message without saving contact',
-            url: 'https://onlineakhil.github.io/project1',
-          })
-            .then(() => console.log('Successful share'))
-            .catch((error) => console.log('Error sharing', error));
-        }}
-    </script>
-    
-  </head>
-  <body class="gradient-bg">
+    </style>
+</head>
 
-    <nav class="navbar nav-custom">
-        <div class="container">
-          <a href="#" class="navbar-brand" data-bs-toggle="modal" data-bs-target="#popupMenu"><img class="icon-menu" src="./menu-icon.svg"/></a>
-          <span class="d-flex">
-            <a href="#" onclick="sharethis()"><img class="icon-menu" src="./share-icon.svg"/></a>
-            <!-- <button onclick="sharethis()">share</button> -->
-          </span>
-        </div>
-    </nav>
-    <div class="container-fluid">
-        <div class="container">
-            <div class="intro-person">
-                <img class="" src="./image.png"/>
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="content">
-                <h2 class="title">WA Direct 🚀</h2>
-                <p class="">Select your country code and Enter the phone number you want to message in WhatsApp eg. 919567933669
-                </p>
-
-                <form name="whatsapp" action="" onsubmit="return false">
-                  
-                    <select name="countryCode" id="ccode" class="countrycode" style="margin-bottom:15px;">
-                        <option data-countryCode="DZ" value="213">Algeria (+213)</option>
-                        <option data-countryCode="AD" value="376">Andorra (+376)</option>
-                        <option data-countryCode="AO" value="244">Angola (+244)</option>
-                        <option data-countryCode="AI" value="1264">Anguilla (+1264)</option>
-                        <option data-countryCode="AG" value="1268">Antigua &amp; Barbuda (+1268)</option>
-                        <option data-countryCode="AR" value="54">Argentina (+54)</option>
-                        <option data-countryCode="AM" value="374">Armenia (+374)</option>
-                        <option data-countryCode="AW" value="297">Aruba (+297)</option>
-                        <option data-countryCode="AU" value="61">Australia (+61)</option>
-                        <option data-countryCode="AT" value="43">Austria (+43)</option>
-                        <option data-countryCode="AZ" value="994">Azerbaijan (+994)</option>
-                        <option data-countryCode="BS" value="1242">Bahamas (+1242)</option>
-                        <option data-countryCode="BH" value="973">Bahrain (+973)</option>
-                        <option data-countryCode="BD" value="880">Bangladesh (+880)</option>
-                        <option data-countryCode="BB" value="1246">Barbados (+1246)</option>
-                        <option data-countryCode="BY" value="375">Belarus (+375)</option>
-                        <option data-countryCode="BE" value="32">Belgium (+32)</option>
-                        <option data-countryCode="BZ" value="501">Belize (+501)</option>
-                        <option data-countryCode="BJ" value="229">Benin (+229)</option>
-                        <option data-countryCode="BM" value="1441">Bermuda (+1441)</option>
-                        <option data-countryCode="BT" value="975">Bhutan (+975)</option>
-                        <option data-countryCode="BO" value="591">Bolivia (+591)</option>
-                        <option data-countryCode="BA" value="387">Bosnia Herzegovina (+387)</option>
-                        <option data-countryCode="BW" value="267">Botswana (+267)</option>
-                        <option data-countryCode="BR" value="55">Brazil (+55)</option>
-                        <option data-countryCode="BN" value="673">Brunei (+673)</option>
-                        <option data-countryCode="BG" value="359">Bulgaria (+359)</option>
-                        <option data-countryCode="BF" value="226">Burkina Faso (+226)</option>
-                        <option data-countryCode="BI" value="257">Burundi (+257)</option>
-                        <option data-countryCode="KH" value="855">Cambodia (+855)</option>
-                        <option data-countryCode="CM" value="237">Cameroon (+237)</option>
-                        <option data-countryCode="CA" value="1">Canada (+1)</option>
-                        <option data-countryCode="CV" value="238">Cape Verde Islands (+238)</option>
-                        <option data-countryCode="KY" value="1345">Cayman Islands (+1345)</option>
-                        <option data-countryCode="CF" value="236">Central African Republic (+236)</option>
-                        <option data-countryCode="CL" value="56">Chile (+56)</option>
-                        <option data-countryCode="CN" value="86">China (+86)</option>
-                        <option data-countryCode="CO" value="57">Colombia (+57)</option>
-                        <option data-countryCode="KM" value="269">Comoros (+269)</option>
-                        <option data-countryCode="CG" value="242">Congo (+242)</option>
-                        <option data-countryCode="CK" value="682">Cook Islands (+682)</option>
-                        <option data-countryCode="CR" value="506">Costa Rica (+506)</option>
-                        <option data-countryCode="HR" value="385">Croatia (+385)</option>
-                        <option data-countryCode="CU" value="53">Cuba (+53)</option>
-                        <option data-countryCode="CY" value="90392">Cyprus North (+90392)</option>
-                        <option data-countryCode="CY" value="357">Cyprus South (+357)</option>
-                        <option data-countryCode="CZ" value="42">Czech Republic (+42)</option>
-                        <option data-countryCode="DK" value="45">Denmark (+45)</option>
-                        <option data-countryCode="DJ" value="253">Djibouti (+253)</option>
-                        <option data-countryCode="DM" value="1809">Dominica (+1809)</option>
-                        <option data-countryCode="DO" value="1809">Dominican Republic (+1809)</option>
-                        <option data-countryCode="EC" value="593">Ecuador (+593)</option>
-                        <option data-countryCode="EG" value="20">Egypt (+20)</option>
-                        <option data-countryCode="SV" value="503">El Salvador (+503)</option>
-                        <option data-countryCode="GQ" value="240">Equatorial Guinea (+240)</option>
-                        <option data-countryCode="ER" value="291">Eritrea (+291)</option>
-                        <option data-countryCode="EE" value="372">Estonia (+372)</option>
-                        <option data-countryCode="ET" value="251">Ethiopia (+251)</option>
-                        <option data-countryCode="FK" value="500">Falkland Islands (+500)</option>
-                        <option data-countryCode="FO" value="298">Faroe Islands (+298)</option>
-                        <option data-countryCode="FJ" value="679">Fiji (+679)</option>
-                        <option data-countryCode="FI" value="358">Finland (+358)</option>
-                        <option data-countryCode="FR" value="33">France (+33)</option>
-                        <option data-countryCode="GF" value="594">French Guiana (+594)</option>
-                        <option data-countryCode="PF" value="689">French Polynesia (+689)</option>
-                        <option data-countryCode="GA" value="241">Gabon (+241)</option>
-                        <option data-countryCode="GM" value="220">Gambia (+220)</option>
-                        <option data-countryCode="GE" value="7880">Georgia (+7880)</option>
-                        <option data-countryCode="DE" value="49">Germany (+49)</option>
-                        <option data-countryCode="GH" value="233">Ghana (+233)</option>
-                        <option data-countryCode="GI" value="350">Gibraltar (+350)</option>
-                        <option data-countryCode="GR" value="30">Greece (+30)</option>
-                        <option data-countryCode="GL" value="299">Greenland (+299)</option>
-                        <option data-countryCode="GD" value="1473">Grenada (+1473)</option>
-                        <option data-countryCode="GP" value="590">Guadeloupe (+590)</option>
-                        <option data-countryCode="GU" value="671">Guam (+671)</option>
-                        <option data-countryCode="GT" value="502">Guatemala (+502)</option>
-                        <option data-countryCode="GN" value="224">Guinea (+224)</option>
-                        <option data-countryCode="GW" value="245">Guinea - Bissau (+245)</option>
-                        <option data-countryCode="GY" value="592">Guyana (+592)</option>
-                        <option data-countryCode="HT" value="509">Haiti (+509)</option>
-                        <option data-countryCode="HN" value="504">Honduras (+504)</option>
-                        <option data-countryCode="HK" value="852">Hong Kong (+852)</option>
-                        <option data-countryCode="HU" value="36">Hungary (+36)</option>
-                        <option data-countryCode="IS" value="354">Iceland (+354)</option>
-                        <option data-countryCode="IN" value="91" Selected>India (+91)</option>
-                        <option data-countryCode="ID" value="62">Indonesia (+62)</option>
-                        <option data-countryCode="IR" value="98">Iran (+98)</option>
-                        <option data-countryCode="IQ" value="964">Iraq (+964)</option>
-                        <option data-countryCode="IE" value="353">Ireland (+353)</option>
-                        <option data-countryCode="IL" value="972">Israel (+972)</option>
-                        <option data-countryCode="IT" value="39">Italy (+39)</option>
-                        <option data-countryCode="JM" value="1876">Jamaica (+1876)</option>
-                        <option data-countryCode="JP" value="81">Japan (+81)</option>
-                        <option data-countryCode="JO" value="962">Jordan (+962)</option>
-                        <option data-countryCode="KZ" value="7">Kazakhstan (+7)</option>
-                        <option data-countryCode="KE" value="254">Kenya (+254)</option>
-                        <option data-countryCode="KI" value="686">Kiribati (+686)</option>
-                        <option data-countryCode="KP" value="850">Korea North (+850)</option>
-                        <option data-countryCode="KR" value="82">Korea South (+82)</option>
-                        <option data-countryCode="KW" value="965">Kuwait (+965)</option>
-                        <option data-countryCode="KG" value="996">Kyrgyzstan (+996)</option>
-                        <option data-countryCode="LA" value="856">Laos (+856)</option>
-                        <option data-countryCode="LV" value="371">Latvia (+371)</option>
-                        <option data-countryCode="LB" value="961">Lebanon (+961)</option>
-                        <option data-countryCode="LS" value="266">Lesotho (+266)</option>
-                        <option data-countryCode="LR" value="231">Liberia (+231)</option>
-                        <option data-countryCode="LY" value="218">Libya (+218)</option>
-                        <option data-countryCode="LI" value="417">Liechtenstein (+417)</option>
-                        <option data-countryCode="LT" value="370">Lithuania (+370)</option>
-                        <option data-countryCode="LU" value="352">Luxembourg (+352)</option>
-                        <option data-countryCode="MO" value="853">Macao (+853)</option>
-                        <option data-countryCode="MK" value="389">Macedonia (+389)</option>
-                        <option data-countryCode="MG" value="261">Madagascar (+261)</option>
-                        <option data-countryCode="MW" value="265">Malawi (+265)</option>
-                        <option data-countryCode="MY" value="60">Malaysia (+60)</option>
-                        <option data-countryCode="MV" value="960">Maldives (+960)</option>
-                        <option data-countryCode="ML" value="223">Mali (+223)</option>
-                        <option data-countryCode="MT" value="356">Malta (+356)</option>
-                        <option data-countryCode="MH" value="692">Marshall Islands (+692)</option>
-                        <option data-countryCode="MQ" value="596">Martinique (+596)</option>
-                        <option data-countryCode="MR" value="222">Mauritania (+222)</option>
-                        <option data-countryCode="YT" value="269">Mayotte (+269)</option>
-                        <option data-countryCode="MX" value="52">Mexico (+52)</option>
-                        <option data-countryCode="FM" value="691">Micronesia (+691)</option>
-                        <option data-countryCode="MD" value="373">Moldova (+373)</option>
-                        <option data-countryCode="MC" value="377">Monaco (+377)</option>
-                        <option data-countryCode="MN" value="976">Mongolia (+976)</option>
-                        <option data-countryCode="MS" value="1664">Montserrat (+1664)</option>
-                        <option data-countryCode="MA" value="212">Morocco (+212)</option>
-                        <option data-countryCode="MZ" value="258">Mozambique (+258)</option>
-                        <option data-countryCode="MN" value="95">Myanmar (+95)</option>
-                        <option data-countryCode="NA" value="264">Namibia (+264)</option>
-                        <option data-countryCode="NR" value="674">Nauru (+674)</option>
-                        <option data-countryCode="NP" value="977">Nepal (+977)</option>
-                        <option data-countryCode="NL" value="31">Netherlands (+31)</option>
-                        <option data-countryCode="NC" value="687">New Caledonia (+687)</option>
-                        <option data-countryCode="NZ" value="64">New Zealand (+64)</option>
-                        <option data-countryCode="NI" value="505">Nicaragua (+505)</option>
-                        <option data-countryCode="NE" value="227">Niger (+227)</option>
-                        <option data-countryCode="NG" value="234">Nigeria (+234)</option>
-                        <option data-countryCode="NU" value="683">Niue (+683)</option>
-                        <option data-countryCode="NF" value="672">Norfolk Islands (+672)</option>
-                        <option data-countryCode="NP" value="670">Northern Marianas (+670)</option>
-                        <option data-countryCode="NO" value="47">Norway (+47)</option>
-                        <option data-countryCode="OM" value="968">Oman (+968)</option>
-                        <option data-countryCode="PW" value="680">Palau (+680)</option>
-                        <option data-countryCode="PA" value="507">Panama (+507)</option>
-                        <option data-countryCode="PG" value="675">Papua New Guinea (+675)</option>
-                        <option data-countryCode="PY" value="595">Paraguay (+595)</option>
-                        <option data-countryCode="PE" value="51">Peru (+51)</option>
-                        <option data-countryCode="PH" value="63">Philippines (+63)</option>
-                        <option data-countryCode="PL" value="48">Poland (+48)</option>
-                        <option data-countryCode="PT" value="351">Portugal (+351)</option>
-                        <option data-countryCode="PR" value="1787">Puerto Rico (+1787)</option>
-                        <option data-countryCode="QA" value="974">Qatar (+974)</option>
-                        <option data-countryCode="RE" value="262">Reunion (+262)</option>
-                        <option data-countryCode="RO" value="40">Romania (+40)</option>
-                        <option data-countryCode="RU" value="7">Russia (+7)</option>
-                        <option data-countryCode="RW" value="250">Rwanda (+250)</option>
-                        <option data-countryCode="SM" value="378">San Marino (+378)</option>
-                        <option data-countryCode="ST" value="239">Sao Tome &amp; Principe (+239)</option>
-                        <option data-countryCode="SA" value="966">Saudi Arabia (+966)</option>
-                        <option data-countryCode="SN" value="221">Senegal (+221)</option>
-                        <option data-countryCode="CS" value="381">Serbia (+381)</option>
-                        <option data-countryCode="SC" value="248">Seychelles (+248)</option>
-                        <option data-countryCode="SL" value="232">Sierra Leone (+232)</option>
-                        <option data-countryCode="SG" value="65">Singapore (+65)</option>
-                        <option data-countryCode="SK" value="421">Slovak Republic (+421)</option>
-                        <option data-countryCode="SI" value="386">Slovenia (+386)</option>
-                        <option data-countryCode="SB" value="677">Solomon Islands (+677)</option>
-                        <option data-countryCode="SO" value="252">Somalia (+252)</option>
-                        <option data-countryCode="ZA" value="27">South Africa (+27)</option>
-                        <option data-countryCode="ES" value="34">Spain (+34)</option>
-                        <option data-countryCode="LK" value="94">Sri Lanka (+94)</option>
-                        <option data-countryCode="SH" value="290">St. Helena (+290)</option>
-                        <option data-countryCode="KN" value="1869">St. Kitts (+1869)</option>
-                        <option data-countryCode="SC" value="1758">St. Lucia (+1758)</option>
-                        <option data-countryCode="SD" value="249">Sudan (+249)</option>
-                        <option data-countryCode="SR" value="597">Suriname (+597)</option>
-                        <option data-countryCode="SZ" value="268">Swaziland (+268)</option>
-                        <option data-countryCode="SE" value="46">Sweden (+46)</option>
-                        <option data-countryCode="CH" value="41">Switzerland (+41)</option>
-                        <option data-countryCode="SI" value="963">Syria (+963)</option>
-                        <option data-countryCode="TW" value="886">Taiwan (+886)</option>
-                        <option data-countryCode="TJ" value="7">Tajikstan (+7)</option>
-                        <option data-countryCode="TH" value="66">Thailand (+66)</option>
-                        <option data-countryCode="TG" value="228">Togo (+228)</option>
-                        <option data-countryCode="TO" value="676">Tonga (+676)</option>
-                        <option data-countryCode="TT" value="1868">Trinidad &amp; Tobago (+1868)</option>
-                        <option data-countryCode="TN" value="216">Tunisia (+216)</option>
-                        <option data-countryCode="TR" value="90">Turkey (+90)</option>
-                        <option data-countryCode="TM" value="7">Turkmenistan (+7)</option>
-                        <option data-countryCode="TM" value="993">Turkmenistan (+993)</option>
-                        <option data-countryCode="TC" value="1649">Turks &amp; Caicos Islands (+1649)</option>
-                        <option data-countryCode="TV" value="688">Tuvalu (+688)</option>
-                        <option data-countryCode="UG" value="256">Uganda (+256)</option>
-                        <!-- <option data-countryCode="GB" value="44">UK (+44)</option> -->
-                        <option data-countryCode="UA" value="380">Ukraine (+380)</option>
-                        <option data-countryCode="AE" value="971">United Arab Emirates (+971)</option>
-                        <option data-countryCode="UY" value="598">Uruguay (+598)</option>
-                        <!-- <option data-countryCode="US" value="1">USA (+1)</option> -->
-                        <option data-countryCode="UZ" value="7">Uzbekistan (+7)</option>
-                        <option data-countryCode="VU" value="678">Vanuatu (+678)</option>
-                        <option data-countryCode="VA" value="379">Vatican City (+379)</option>
-                        <option data-countryCode="VE" value="58">Venezuela (+58)</option>
-                        <option data-countryCode="VN" value="84">Vietnam (+84)</option>
-                        <option data-countryCode="VG" value="84">Virgin Islands - British (+1284)</option>
-                        <option data-countryCode="VI" value="84">Virgin Islands - US (+1340)</option>
-                        <option data-countryCode="WF" value="681">Wallis &amp; Futuna (+681)</option>
-                        <option data-countryCode="YE" value="969">Yemen (North)(+969)</option>
-                        <option data-countryCode="YE" value="967">Yemen (South)(+967)</option>
-                        <option data-countryCode="ZM" value="260">Zambia (+260)</option>
-                        <option data-countryCode="ZW" value="263">Zimbabwe (+263)</option>
-                    </select>
-
-                    <div class="input-group mb-3">
-                        <input id="mnum" maxlength="22" autofocus type="tel" pattern="[0-9]*" novalidate name="mobilenumber" class="form-control" placeholder="WhatsApp Number" required>
-                    </div>
-                    <button onclick="runApp(form.mobilenumber.value)" class="btn btn-primary" type="submit">Send Message <i class="btn-icon bi bi-arrow-right"></i></button>
-
-                </form>
-
-                <p style="padding-top: 20px;">facing some issues? <a href="https://linkedin.com/in/onlineakhil" target="_blank" class="link">let me know!</a>
-                </p>
-            </div>
-        </div>
-    </div>
-
-
-
-
-<!-- Popup Menu -->
-<div class="modal fade" id="popupMenu" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">WA Direct 🚀</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Hey Whatsupp bro! 🙌🏻<br/> Do you know how to send WhatsApp message without saving the contact number to your phone? (if you already know, go grab a coffee☕️ and share this to someone who dont't know 🫣) WA Direct is here! You want to sent a WhatsApp message without going to the trouble of adding someone to your contact list.<br/>
-        Cheers !!<br/><br/>
-        ~ <a href="https://linkedin.com/in/onlineakhil" target="_blank" style="text-decoration:none;">Akhil 🤘🏻</a>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok Got it 😎</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="pinstall">
-    <br>
-    Tap
-    <img  height="4%" src="data:image/png;base64,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">
-     and
-    <img  height="3%" src="data:image/png;base64,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">
-     <em>add to homescreen</em> to install this service as a web app
-</div>
-
-<script>
-
-    document.getElementById("pinstall").style.visibility="hidden";
-    
-    const isIos = () => {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      return /iphone|ipad|ipod/.test( userAgent );
-    }
-    // Detects if device is in standalone mode
-    const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-    
-    // Checks if should display install popup notification:
-    if (isIos() && !isInStandaloneMode()) {document.getElementById("pinstall").style.visibility="visible";}
-    
-</script>
-
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<body>
+    <div id="map"></div>
 </body>
 </html>
 
+<!-- leaflet js  -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Map initialization 
+    var map = L.map('map').setView([14.0860746, 100.608406], 6);
 
+    //osm layer
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    osm.addTo(map);
+
+    if(!navigator.geolocation) {
+        console.log("Your browser doesn't support geolocation feature!")
+    } else {
+        setInterval(() => {
+            navigator.geolocation.getCurrentPosition(getPosition)
+        }, 5000);
+    }
+
+    var marker, circle;
+
+    function getPosition(position){
+        // console.log(position)
+        var lat = position.coords.latitude
+        var long = position.coords.longitude
+        var accuracy = position.coords.accuracy
+
+        if(marker) {
+            map.removeLayer(marker)
+        }
+
+        if(circle) {
+            map.removeLayer(circle)
+        }
+
+        marker = L.marker([lat, long])
+        circle = L.circle([lat, long], {radius: accuracy})
+
+        var featureGroup = L.featureGroup([marker, circle]).addTo(map)
+
+        map.fitBounds(featureGroup.getBounds())
+
+        console.log("Your coordinate is: Lat: "+ lat +" Long: "+ long+ " Accuracy: "+ accuracy)
+    }
+
+</script>
